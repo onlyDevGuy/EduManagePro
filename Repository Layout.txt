@@ -1,0 +1,22 @@
+edumanage-pro/
+├── backend/
+│   ├── pom.xml
+│   ├── Dockerfile
+│   └── src/main/
+│       ├── java/com/edumanage/
+│       │   ├── EduManageApplication.java
+│       │   ├── config/          AppProperties, SecurityConfig
+│       │   ├── tenant/          TenantContext
+│       │   ├── domain/          TenantAwareEntity, Tenant, User, Student, Course,
+│       │   │                    Enrollment, AttendanceRecord, Invoice
+│       │   ├── repository/      Spring Data JPA repositories
+│       │   ├── security/        JwtService, JwtAuthenticationFilter
+│       │   ├── service/         Auth, Student, Course, Attendance, Invoice, Stripe
+│       │   ├── web/             REST controllers + dto + GlobalExceptionHandler
+│       │   └── bootstrap/       DemoDataSeeder
+│       └── resources/
+│           ├── application.yml
+│           └── db/migration/V1__init.sql
+├── frontend/                    Vite + React + TS + Tailwind
+├── docker-compose.yml
+└── .github/workflows/ci.yml

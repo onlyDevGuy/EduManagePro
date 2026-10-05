@@ -1,0 +1,52 @@
+# Build directories
+backend/target/
+frontend/dist/
+frontend/build/
+
+# Node dependencies
+frontend/node_modules/
+
+# Environment files
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Local secrets (Stripe keys etc.) — auto-loaded by Spring from ./config/
+backend/config/
+
+# Local tooling binaries (Stripe CLI, etc.)
+tools/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.iml
+*.iws
+*.classpath
+*.project
+*.settings/
+
+# Java / Maven
+*.class
+*.log
+*.jar
+*.war
+*.ear
+*.nar
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs and databases
+*.sqlite
+*.db
+backend/logs/
+frontend/npm-debug.log
+frontend/yarn-error.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
