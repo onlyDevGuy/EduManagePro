@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: edumanage-pro
+  # Local dev runs on an in-memory H2 database by default (no infra needed).
+  # Deployments set SPRING_PROFILES_ACTIVE=prod to use PostgreSQL + Flyway.
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+        format_sql: false
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-please-32-bytes-minimum!!}
+    issuer: edumanage-pro
+    access-token-ttl: PT15M
+    refresh-token-ttl: P7D
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    success-url: ${STRIPE_SUCCESS_URL:http://localhost:5173/billing/success}
+    cancel-url: ${STRIPE_CANCEL_URL:http://localhost:5173/billing/cancel}
+  bootstrap:
+    enabled: ${BOOTSTRAP_ENABLED:true}
+
+logging:
+  level:
+    com.edumanage: INFO
+
+---
+# ---- Local development: in-memory H2, schema generated from entities ----
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:edumanage;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: password
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
+  h2:
+    console:
+      enabled: true
+
+---
+# ---- Production: PostgreSQL with Flyway-managed schema ----
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/edumanage}
+    username: ${DB_USER:edumanage}
+    password: ${DB_PASSWORD:edumanage}
+    hikari:
+      maximum-pool-size: 5          # keep small for free tiers
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
