@@ -1,0 +1,26 @@
+# ---- Build output / IDE ----
+bin/
+*.class
+.vscode/
+.idea/
+*.iml
+
+# ---- Node / frontend ----
+**/node_modules/
+**/dist/
+**/build/
+
+# ---- Java / Maven ----
+**/target/
+
+# ---- Secrets & local config (never commit) ----
+**/config/application.properties
+**/.env
+**/.env.local
+**/.env.*.local
+tools/
+
+# ---- Logs / OS ----
+*.log
+.DS_Store
+Thumbs.db
