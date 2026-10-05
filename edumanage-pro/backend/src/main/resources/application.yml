@@ -76,7 +76,9 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/edumanage}
+    # DB_URL can be set directly (docker-compose, CI); otherwise it is composed from
+    # the individual parts that managed Postgres providers (Render, Neon, Supabase) expose.
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:edumanage}}
     username: ${DB_USER:edumanage}
     password: ${DB_PASSWORD:edumanage}
     hikari:
