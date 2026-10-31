@@ -6,7 +6,7 @@ A multi-tenant SaaS for running schools. Each school signs up, gets its own isol
 
 **Stack:** Java 17 · Spring Boot 3.2 · Spring Security · JPA/Hibernate · PostgreSQL + Flyway · JWT · Stripe · React 18 + TypeScript · TanStack Query · Tailwind CSS · Docker · GitHub Actions
 
-![Admin dashboard](docs/screenshots/dashboard.png)
+![Admin dashboard](edumanage-pro/docs/screenshots/dashboard.png)
 
 ## Features
 
@@ -25,7 +25,7 @@ A multi-tenant SaaS for running schools. Each school signs up, gets its own isol
 
 | Students (admin) | Billing as a student: only their own invoice |
 | --- | --- |
-| ![Students](docs/screenshots/students.png) | ![Student billing view](docs/screenshots/billing-student.png) |
+| ![Students](edumanage-pro/docs/screenshots/students.png) | ![Student billing view](edumanage-pro/docs/screenshots/billing-student.png) |
 
 ## How multi-tenancy works
 
@@ -57,13 +57,13 @@ Tests in `AccessControlTest` register two schools and prove that neither can rea
 
 ```bash
 # API: dev profile, in-memory H2, seeds a demo school (http://localhost:8080)
-cd backend
+cd edumanage-pro/backend
 ./mvnw spring-boot:run
 ```
 
 ```bash
 # Web app (http://localhost:5173)
-cd frontend
+cd edumanage-pro/frontend
 npm install
 npm run dev
 ```
@@ -78,11 +78,12 @@ Sign in to the school **`demo-academy`** with password `Password123!` as any of:
 
 API documentation (OpenAPI/Swagger UI) is served at `http://localhost:8080/swagger-ui.html`.
 
-If port 8080 is taken, run the API with `PORT=8081` and set `VITE_API_BASE_URL=http://localhost:8081` in `frontend/.env.local`.
+If port 8080 is taken, run the API with `PORT=8081` and set `VITE_API_BASE_URL=http://localhost:8081` in `edumanage-pro/frontend/.env.local`.
 
 ### Production-like, with Docker
 
 ```bash
+cd edumanage-pro
 cp .env.example .env        # then set JWT_SECRET (e.g. openssl rand -base64 48)
 docker compose up --build
 ```
@@ -103,7 +104,7 @@ This runs PostgreSQL, the API with the `prod` profile (Flyway migrations, schema
 ## Tests
 
 ```bash
-cd backend
+cd edumanage-pro/backend
 ./mvnw verify
 ```
 
@@ -128,8 +129,10 @@ CI (GitHub Actions) runs the backend tests, a frontend typecheck and build, and 
 
 ## Project structure
 
+The application lives in `edumanage-pro/`; `render.yaml` at the root is a Render deployment blueprint.
+
 ```
-backend/
+edumanage-pro/backend/
   src/main/java/com/edumanage/
     config/        security filter chain, CORS, typed app properties
     security/      JWT issuing/validation, auth filter, login lockout
@@ -140,7 +143,7 @@ backend/
     web/           REST controllers, DTOs, RFC 7807 error handling
     bootstrap/     dev-only demo data
   src/main/resources/db/migration/   Flyway SQL migrations (PostgreSQL)
-frontend/
+edumanage-pro/frontend/
   src/pages/       Login, Register, Dashboard, Students, Courses, Attendance, Billing
   src/lib/         API client (token refresh) and auth context
 ```
