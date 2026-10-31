@@ -68,6 +68,9 @@ public class DemoDataSeeder implements ApplicationRunner {
                             .guardianName("Marco Rossi").guardianEmail("marco@example.test")
                             .guardianPhone("+1-555-0103").build()));
 
+            // A student login linked to Maya, to try the student view (own invoices only).
+            userRepository.save(user("student@demo-academy.test", "Maya Chen", User.Role.STUDENT, students.get(0).getId()));
+
             Course math = courseRepository.save(Course.builder()
                     .code("MATH-101").title("Algebra I")
                     .description("Foundations of algebra: expressions, equations, functions.")
@@ -99,24 +102,25 @@ public class DemoDataSeeder implements ApplicationRunner {
                             : AttendanceRecord.Status.PRESENT)
                     .recordedBy(admin.getId()).build()).toList());
 
+            String invoicePrefix = "INV-" + java.time.Year.now().getValue() + "-";
             invoiceRepository.saveAll(List.of(
-                    Invoice.builder().number("INV-2025-00001").studentId(students.get(0).getId())
+                    Invoice.builder().number(invoicePrefix + "00001").studentId(students.get(0).getId())
                             .description("Algebra I — Term 1 tuition")
                             .amount(new BigDecimal("450.00")).currency("USD")
                             .status(Invoice.Status.SENT)
                             .issueDate(LocalDate.now().minusDays(10)).dueDate(LocalDate.now().plusDays(20)).build(),
-                    Invoice.builder().number("INV-2025-00002").studentId(students.get(1).getId())
+                    Invoice.builder().number(invoicePrefix + "00002").studentId(students.get(1).getId())
                             .description("General Science — Term 1 tuition + lab fee")
                             .amount(new BigDecimal("560.00")).currency("USD")
                             .status(Invoice.Status.OVERDUE)
                             .issueDate(LocalDate.now().minusDays(45)).dueDate(LocalDate.now().minusDays(5)).build(),
-                    Invoice.builder().number("INV-2025-00003").studentId(students.get(2).getId())
+                    Invoice.builder().number(invoicePrefix + "00003").studentId(students.get(2).getId())
                             .description("Algebra I — Term 1 tuition")
                             .amount(new BigDecimal("450.00")).currency("USD")
                             .status(Invoice.Status.PAID).paidAt(java.time.Instant.now())
                             .issueDate(LocalDate.now().minusDays(30)).dueDate(LocalDate.now()).build()));
 
-            log.info("Demo seed complete. Login with tenant=demo-academy, admin@demo-academy.test / Password123!");
+            log.info("Demo seed complete. Sign in to tenant 'demo-academy' as admin@, teacher@ or student@demo-academy.test");
         } finally {
             TenantContext.clear();
         }

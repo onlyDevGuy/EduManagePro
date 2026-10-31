@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
     "composite": true,
+    // Build output goes out of the source tree: a compiled vite.config.js next to
+    // vite.config.ts would be loaded by Vite instead of the real config.
+    "outDir": "./node_modules/.tmp/tsconfig.node",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",

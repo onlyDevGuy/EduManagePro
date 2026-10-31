@@ -3,12 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { ApiError } from '../lib/api';
 
+// The demo school only exists where the API seeds it (dev, or a deploy that opts in),
+// so its credentials are only offered there.
+const SHOW_DEMO = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO === 'true';
+
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [tenantSlug, setTenantSlug] = useState('demo-academy');
-  const [email, setEmail] = useState('admin@demo-academy.test');
-  const [password, setPassword] = useState('Password123!');
+  const [tenantSlug, setTenantSlug] = useState(SHOW_DEMO ? 'demo-academy' : '');
+  const [email, setEmail] = useState(SHOW_DEMO ? 'admin@demo-academy.test' : '');
+  const [password, setPassword] = useState(SHOW_DEMO ? 'Password123!' : '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -120,10 +124,12 @@ export default function Login() {
               Register your school
             </Link>
           </p>
-          <p className="mt-3 text-center text-xs text-slate-500">
-            Demo — School ID <span className="text-slate-300">demo-academy</span>,
-            admin@demo-academy.test / Password123!
-          </p>
+          {SHOW_DEMO && (
+            <p className="mt-3 text-center text-xs text-slate-500">
+              Demo — School ID <span className="text-slate-300">demo-academy</span>,
+              admin@, teacher@ or student@demo-academy.test / Password123!
+            </p>
+          )}
         </div>
       </div>
     </div>

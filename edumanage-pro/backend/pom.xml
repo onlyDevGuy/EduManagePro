@@ -22,6 +22,8 @@
     <jjwt.version>0.12.5</jjwt.version>
     <stripe.version>24.16.0</stripe.version>
     <springdoc.version>2.5.0</springdoc.version>
+    <!-- Newer than Boot 3.2's managed 1.19.x: needed for Docker Engine 29+ API versions. -->
+    <testcontainers.version>1.21.4</testcontainers.version>
   </properties>
 
   <dependencies>

@@ -25,16 +25,18 @@ public class InvoiceController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String studentId,
             @AuthenticationPrincipal User user) {
-        // Students may only ever see their own invoices.
+        // Students may only ever see their own invoices. A student login that is not
+        // linked to a student record sees none (not, by falling through, everyone's).
         if (user.getRole() == User.Role.STUDENT) {
+            if (user.getStudentId() == null) return PageResponse.empty(page, size);
             studentId = user.getStudentId();
         }
         return invoiceService.list(page, size, status, studentId);
     }
 
     @GetMapping("/{id}")
-    public InvoiceView get(@PathVariable String id) {
-        return invoiceService.get(id);
+    public InvoiceView get(@PathVariable String id, @AuthenticationPrincipal User user) {
+        return invoiceService.get(id, user);
     }
 
     @PostMapping
@@ -51,7 +53,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/{id}/checkout-session")
-    public CheckoutResponse checkout(@PathVariable String id) {
-        return invoiceService.createCheckoutSession(id);
+    public CheckoutResponse checkout(@PathVariable String id, @AuthenticationPrincipal User user) {
+        return invoiceService.createCheckoutSession(id, user);
     }
 }

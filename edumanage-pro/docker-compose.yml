@@ -25,7 +25,8 @@ services:
       DB_URL: jdbc:postgresql://db:5432/edumanage
       DB_USER: edumanage
       DB_PASSWORD: edumanage
-      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me-please-32-bytes-minimum!!}
+      # Required: the prod profile refuses to start without a real secret. See .env.example.
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (e.g. openssl rand -base64 48)}
       CORS_ORIGINS: http://localhost:5173
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}

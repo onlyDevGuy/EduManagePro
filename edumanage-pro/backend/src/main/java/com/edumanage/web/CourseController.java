@@ -53,6 +53,7 @@ public class CourseController {
     // ---- Enrollments ------------------------------------------------------
 
     @GetMapping("/{id}/enrollments")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public List<EnrollmentView> listEnrollments(@PathVariable String id) {
         return courseService.listEnrollments(id);
     }

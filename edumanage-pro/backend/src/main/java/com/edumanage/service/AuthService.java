@@ -6,10 +6,10 @@ import com.edumanage.domain.User;
 import com.edumanage.repository.TenantRepository;
 import com.edumanage.repository.UserRepository;
 import com.edumanage.security.JwtService;
+import com.edumanage.security.LoginAttemptService;
 import com.edumanage.tenant.TenantContext;
 import com.edumanage.web.dto.AuthDtos.*;
 import io.jsonwebtoken.Claims;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,9 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final TenantRepository tenantRepository;
@@ -27,6 +28,20 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AppProperties appProperties;
+    private final LoginAttemptService loginAttempts;
+    private final String dummyHash;
+
+    public AuthService(TenantRepository tenantRepository, UserRepository userRepository,
+                       PasswordEncoder passwordEncoder, JwtService jwtService,
+                       AppProperties appProperties, LoginAttemptService loginAttempts) {
+        this.tenantRepository = tenantRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.appProperties = appProperties;
+        this.loginAttempts = loginAttempts;
+        this.dummyHash = passwordEncoder.encode(UUID.randomUUID().toString());
+    }
 
     /** Self-service tenant onboarding: creates the school + its first ADMIN user. */
     @Transactional
@@ -60,18 +75,29 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest req) {
-        Tenant tenant = tenantRepository.findBySlug(req.tenantSlug().trim().toLowerCase(Locale.ROOT))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+        String slug = req.tenantSlug().trim().toLowerCase(Locale.ROOT);
+        String email = req.email().trim().toLowerCase(Locale.ROOT);
 
-        User user = userRepository
-                .findByTenantIdAndEmail(tenant.getId(), req.email().trim().toLowerCase(Locale.ROOT))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+        loginAttempts.lockedFor(slug, email).ifPresent(remaining -> {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many failed sign-in attempts. Try again in " + Math.max(1, remaining.toMinutes()) + " minutes.");
+        });
 
-        if (!user.isEnabled() || !passwordEncoder.matches(req.password(), user.getPasswordHash())) {
+        Optional<Tenant> tenant = tenantRepository.findBySlug(slug);
+        Optional<User> user = tenant.flatMap(t -> userRepository.findByTenantIdAndEmail(t.getId(), email));
+
+        // Always run one bcrypt comparison, so an unknown school or email takes as long
+        // as a wrong password and response times do not reveal which accounts exist.
+        boolean passwordMatches = passwordEncoder.matches(req.password(),
+                user.map(User::getPasswordHash).orElse(dummyHash));
+
+        if (user.isEmpty() || !passwordMatches || !user.get().isEnabled()) {
+            loginAttempts.recordFailure(slug, email);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        return tokensFor(user, tenant);
+        loginAttempts.recordSuccess(slug, email);
+        return tokensFor(user.get(), tenant.get());
     }
 
     @Transactional(readOnly = true)
@@ -92,6 +118,7 @@ public class AuthService {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unknown tenant"));
         User user = userRepository.findByIdAndTenantId(userId, tenantId)
+                .filter(User::isEnabled) // a disabled account cannot keep renewing its session
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unknown user"));
 
         return tokensFor(user, tenant);

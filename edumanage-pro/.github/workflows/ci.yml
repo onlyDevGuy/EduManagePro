@@ -13,17 +13,6 @@ jobs:
   backend:
     name: Backend (build + test)
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: edumanage_test
-          POSTGRES_USER: edumanage
-          POSTGRES_PASSWORD: edumanage
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U edumanage"
-          --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -31,16 +20,11 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: maven
+      # Unit and API tests run on H2; PostgresMigrationTest starts a real PostgreSQL
+      # with Testcontainers (Docker is available on GitHub-hosted runners).
       - name: Build & test
         working-directory: backend
-        env:
-          SPRING_PROFILES_ACTIVE: prod
-          DB_URL: jdbc:postgresql://localhost:5432/edumanage_test
-          DB_USER: edumanage
-          DB_PASSWORD: edumanage
-          JWT_SECRET: ci-secret-ci-secret-ci-secret-ci-secret
-          BOOTSTRAP_ENABLED: "false"
-        run: mvn -B verify
+        run: ./mvnw -B verify
 
   frontend:
     name: Frontend (lint + build)

@@ -14,8 +14,10 @@ spring:
 
 server:
   port: ${PORT:8080}
+  # Error bodies come from GlobalExceptionHandler; never echo exception text or traces.
   error:
-    include-message: always
+    include-message: never
+    include-stacktrace: never
   shutdown: graceful
 
 management:
@@ -42,7 +44,11 @@ app:
     success-url: ${STRIPE_SUCCESS_URL:http://localhost:5173/billing/success}
     cancel-url: ${STRIPE_CANCEL_URL:http://localhost:5173/billing/cancel}
   bootstrap:
-    enabled: ${BOOTSTRAP_ENABLED:true}
+    # Demo tenant with known passwords: only seeded in dev unless explicitly enabled.
+    enabled: ${BOOTSTRAP_ENABLED:false}
+  login:
+    max-failures: 5
+    lockout: PT15M
 
 logging:
   level:
@@ -69,6 +75,10 @@ spring:
     console:
       enabled: true
 
+app:
+  bootstrap:
+    enabled: ${BOOTSTRAP_ENABLED:true}
+
 ---
 # ---- Production: PostgreSQL with Flyway-managed schema ----
 spring:
@@ -89,3 +99,8 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+
+app:
+  jwt:
+    # No fallback in production: JwtService refuses to start without a real secret.
+    secret: ${JWT_SECRET:}

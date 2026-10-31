@@ -1,6 +1,7 @@
 package com.edumanage.service;
 
 import com.edumanage.domain.Invoice;
+import com.edumanage.domain.User;
 import com.edumanage.repository.InvoiceRepository;
 import com.edumanage.repository.StudentRepository;
 import com.edumanage.tenant.TenantContext;
@@ -48,7 +49,7 @@ public class InvoiceService {
     }
 
     @Transactional(readOnly = true)
-    public InvoiceView get(String id) { return toView(require(id)); }
+    public InvoiceView get(String id, User viewer) { return toView(requireVisibleTo(id, viewer)); }
 
     @Transactional
     public InvoiceView create(CreateInvoiceRequest req) {
@@ -100,9 +101,9 @@ public class InvoiceService {
     }
 
     @Transactional
-    public CheckoutResponse createCheckoutSession(String invoiceId) {
+    public CheckoutResponse createCheckoutSession(String invoiceId, User payer) {
         String tenantId = TenantContext.requireTenantId();
-        Invoice invoice = require(invoiceId);
+        Invoice invoice = requireVisibleTo(invoiceId, payer);
 
         if (invoice.getStatus() == Invoice.Status.PAID) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Invoice already paid");
@@ -120,6 +121,19 @@ public class InvoiceService {
         Invoice invoice = require(invoiceId);
         invoice.setStripeCheckoutSessionId(sessionId);
         invoiceRepository.save(invoice);
+    }
+
+    /**
+     * Staff can see any invoice in their school; a student only their own. Another
+     * student's invoice is reported as not found, so ids cannot be probed.
+     */
+    private Invoice requireVisibleTo(String id, User viewer) {
+        Invoice invoice = require(id);
+        if (viewer.getRole() == User.Role.STUDENT
+                && (viewer.getStudentId() == null || !viewer.getStudentId().equals(invoice.getStudentId()))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found");
+        }
+        return invoice;
     }
 
     private Invoice require(String id) {

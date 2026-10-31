@@ -50,3 +50,6 @@ frontend/yarn-error.log
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Local secrets for docker compose
+.env

@@ -19,5 +19,9 @@ public final class CommonDtos {
         public static <E, T> PageResponse<T> from(Page<E> page, Function<E, T> mapper) {
             return from(page.map(mapper));
         }
+
+        public static <T> PageResponse<T> empty(int page, int size) {
+            return new PageResponse<>(List.of(), page, size, 0, 0, false);
+        }
     }
 }
